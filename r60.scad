@@ -28,6 +28,8 @@ hole_locations = [
 ];
 
 stock_height = case_width + standoff_height + height_over_standoff;
+//stock_height = 25.4;
+
 
 module case(x, y, z, wasted_stock) {
     translate([x, y, z]) {
@@ -125,9 +127,90 @@ module rcube(x, y, z, r) {
     }
 }
 
-module standoff() {
-  stock_height=25.4;
+module rcube2(d, r) {
+    hull() {
+        translate([r, r, 0]) cylinder(r1=r, r2=r,  h=d[2]);
+        translate([d[0]-r, r, 0]) cylinder(r1=r, r2=r, h=d[2]);
+        translate([r, d[1]-r, 0]) cylinder(r1=r, r2=r, h=d[2]);
+        translate([d[0]-r, d[1]-r, 0]) cylinder(r1=r, r2=r, h=d[2]);
+    }
+}
 
+module standoff2() {
+  cup_size = 1.5;
+  cup_slop = 1.5;
+  cup_height = 3;
+  cup_mm = 100;
+
+  bottom_trim = stock_height - (case_width + standoff_height + height_over_standoff);
+
+  overall_height = (case_width * 2) + (slop * 2) + board_height;
+  overall_width = (case_width * 2) + (slop * 2) + cup_mm + 10;
+
+  rotate_angle = atan(bottom_trim / overall_height);
+
+  difference() {
+    union() {
+      rotate([-rotate_angle, 0, 0]) {
+        translate([0, 2 * case_width, 0]) {
+          translate([0, 0, cup_height]) {
+            difference() {
+              cube([overall_width + (cup_size * 2) + cup_slop,
+                    overall_height + (cup_size * 2) + cup_slop,
+                    bottom_trim * 1.5]);
+
+              translate([cup_size, cup_size, -1])
+              cube([overall_width + cup_slop,
+                    overall_height + cup_slop,
+                    bottom_trim * 2.5]);
+            }
+
+            difference() {
+              translate([cup_size + (cup_slop/2) + case_width,
+                         cup_size + (cup_slop/2) + case_width,
+                         0])
+              rcube2([overall_width + (cup_slop/2) - (case_width * 2),
+                      overall_height + (cup_slop/2) - (case_width * 2),
+                      bottom_trim * 1.5], 6.35);
+
+
+              translate([cup_size + (cup_slop/2) + case_width + cup_size,
+                         cup_size + (cup_slop/2) + case_width + cup_size,
+                         -1])
+              rcube2([overall_width + (cup_slop/2) - (case_width * 2) - (2 * cup_size),
+                      overall_height + (cup_slop/2) - (case_width * 2) - (2 * cup_size),
+                      bottom_trim * 2.5], 6.35);
+
+            }
+          }
+
+          difference() {
+            cube([overall_width + (cup_size * 2) + cup_slop,
+                  overall_height + (cup_size * 2) + cup_slop,
+                  bottom_trim * 1.5]);
+
+            translate([cup_size + (cup_slop/2) + case_width + cup_size,
+                       cup_size + (cup_slop/2) + case_width + cup_size,
+                       -1])
+            rcube2([overall_width + (cup_slop/2) - (case_width * 2) - (2 * cup_size),
+                    overall_height + (cup_slop/2) - (case_width * 2) - (2 * cup_size),
+                    bottom_trim * 2.5], 6.35);
+          }
+        }
+      }
+    }
+    union() {
+      translate([-1, -1, -(bottom_trim * 2)])
+      cube([overall_width * 2, overall_height * 2, bottom_trim * 2]);
+
+      thing_width = overall_width + (cup_size * 2) + cup_slop;
+      translate([thing_width/2 - 5, 0, -1])
+        cube([10, 2 * overall_height, bottom_trim * 2.5]);
+    }
+  }
+}
+
+module standoff() {
   piece_width = 30;
 
   bottom_trim = stock_height - (case_width + standoff_height + height_over_standoff);
@@ -190,7 +273,7 @@ module feet() {
 }
 
 
-mod = "case";
+mod = "standoff";
 
 if (mod == "case") {
   wasted_stock = stock_height - (case_width + standoff_height + height_over_standoff);
@@ -208,7 +291,7 @@ if (mod == "usb") {
 }
 
 if (mod == "standoff") {
-  standoff();
+  standoff2();
 }
 
 if (mod == "bottom") {

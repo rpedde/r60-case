@@ -21,7 +21,7 @@ function gen() {
     openscad -o r60-${what}${optfname}.${format} -D "mod=\"${what}\"" ${optargs} r60.scad
 }
 
-for d in case:stl holes:dxf usb:dxf standoff:stl bottom:dxf feet:dxf; do
+for d in case:stl holes:dxf usb:dxf standoff:stl bottom:dxf feet:dxf clamps:stl sidecut:dxf; do
     what=${d%:*}
     format=${d#*:}
 

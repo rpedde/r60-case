@@ -7,16 +7,20 @@ board_height = 94.6;
 
 board_lip = 0;
 pcb_thickness = 1.6;
-slop = 1;
+slop = 1.5;
 
 standoff_height = 1.5;  // 1/4" standoff
 
 standoff_radius = 2 + 1.5; // 4mm drill-in, with 1mm border
 inset_radius = 2.05;
 
-height_over_standoff = 11;
+height_over_standoff = 13;
 
 case_width = 6;
+
+usb_offset = -1;
+
+pressfit = 1;
 
 hole_locations = [
     [25.2, 66.7],
@@ -27,70 +31,67 @@ hole_locations = [
     [board_width - 3, 38.1]
 ];
 
-stock_height = case_width + standoff_height + height_over_standoff;
-//stock_height = 25.4;
+sidecut_size = 25.4;
 
+stock_height = case_width + standoff_height + height_over_standoff;
+//stock_height = 33.53;
+tool_diameter = 6.35;
 
 module case(x, y, z, wasted_stock) {
-    translate([x, y, z]) {
-        union() {
-            cube(size=[(board_width + (2 * slop) + (2 * case_width)),
-                       (board_height + (2 * slop) + (2 * case_width)),
-                       wasted_stock]);
+  translate([x, y, z]) {
+    difference() {
+      union() {
+        rcube((board_width + (2 * slop) + (2 * case_width)),
+              (board_height + (2 * slop) + (2 * case_width)),
+               wasted_stock, tool_diameter);
 
-            translate([0, 0, wasted_stock]) {
-              difference() {
-                  cube(size=[(board_width + (2 * slop) + (2 * case_width)),
-                             (board_height + (2 * slop) + (2 * case_width)),
+        translate([0, 0, wasted_stock]) {
+          difference() {
+            rcube(board_width + (2 * slop) + (2 * case_width),
+                  (board_height + (2 * slop) + (2 * case_width)),
+                  standoff_height + case_width + height_over_standoff,
+                  tool_diameter);
+            union() {
+              translate([case_width + board_lip + slop,
+                         case_width + board_lip + slop,
+                         case_width]) {
+                  cube(size=[board_width - (2 * board_lip),
+                             board_height - (2 * board_lip),
                              standoff_height + case_width + height_over_standoff]);
-                  union() {
-                      translate([case_width + board_lip + slop,
-                                 case_width + board_lip + slop,
-                                 case_width]) {
-                          cube(size=[board_width - (2 * board_lip),
-                                     board_height - (2 * board_lip),
-                                     standoff_height + case_width + height_over_standoff]);
-                      }
-                      translate([case_width,
-                                 case_width,
-                                 case_width + standoff_height]) {
-                          cube(size=[board_width + (2*slop),
-                                     board_height + (2*slop),
-                                     standoff_height + case_width + height_over_standoff]);
-                      }
-                  }
               }
-              translate([case_width + slop, case_width + slop, 0]) {
-                  for (i = [0 : 1 : len(hole_locations) - 1]) {
-                      translate(hole_locations[i])
-                      cylinder(h=standoff_height + case_width, r=standoff_radius);
-                  }
-                  // translate([25.2, 66.7, 0])
-                  // cylinder(h=standoff_height + case_width, r=standoff_radius);
-                  // translate([260.05, 66.7, 0])
-                  // cylinder(h=standoff_height + case_width, r=standoff_radius);
-                  // translate([128.2, 47.6, 0])
-                  // cylinder(h=standoff_height + case_width, r=standoff_radius);
-                  // translate([190.5, 9.4, 0])
-                  // cylinder(h=standoff_height + case_width, r=standoff_radius);
-                  // union() {
-                  //     translate([standoff_radius, 38.1, 0])
-                  //     cylinder(h=standoff_height + case_width, r=standoff_radius);
-                  //     translate([0, 38.1 - standoff_radius, 0])
-                  //     cube(size=[standoff_radius, standoff_radius * 2, standoff_height + case_width]);
-                  // }
-                  // union() {
-                  //     translate([board_width - standoff_radius, 38.1, 0])
-                  //     cylinder(h=standoff_height + case_width, r=standoff_radius);
-                  //     translate([board_width - standoff_radius, 38.1 - standoff_radius, 0])
-                  //     cube(size=[standoff_radius, standoff_radius * 2, standoff_height + case_width]);
-                  // }
+              translate([case_width,
+                         case_width,
+                         case_width + standoff_height]) {
+                cube(size=[board_width + (2*slop),
+                           board_height + (2*slop),
+                           standoff_height + case_width + height_over_standoff]);
               }
+            }
           }
+          translate([case_width + slop, case_width + slop, 0]) {
+            for (i = [0 : 1 : len(hole_locations) - 1]) {
+              translate(hole_locations[i])
+              cylinder(h=standoff_height + case_width, r=standoff_radius);
+            }
+          }
+        }
       }
-   }
+      union() {
+        translate([0, 0, wasted_stock + case_width + standoff_height + height_over_standoff - pressfit])
+        difference() {
+          translate([-1, -2, 0])
+          cube((board_width + (2 * slop) + (2 * case_width) + 2),
+                (board_height + (2 * slop) + (2 * case_width) + 2),
+                100, tool_diameter);
+          translate([case_width / 2, case_width / 2, 0])
+          rcube((board_width + (2 * slop) + case_width),
+                (board_height + (2 * slop) + case_width),
+                110, tool_diameter);
+        }
+      }
+    }
+  }
 }
-
 module holes(x, y) {
   translate([case_width + slop, case_width + slop]) {
     for (i = [0 : 1 : len(hole_locations) - 1]) {
@@ -109,7 +110,7 @@ module centered_box(x, y, w, h) {
 }
 
 module usb() {
-  translate([case_width + slop + 19.05,
+  translate([case_width + slop + 19.05 + usb_offset,
              height_over_standoff + 2.05]) { // half the heigth of usb mini
     difference() {
       centered_box(0, 0, 12, 8.5);
@@ -244,17 +245,56 @@ module standoff() {
     inset = 4;
 
     translate([case_width + slop + inset, case_width + slop + inset, -2]) {
-        cube(size=[piece_width - (2 * inset), board_height - (2 * inset), height_over_standoff + 2]);
+      cube(size=[piece_width - (2 * inset), board_height - (2 * inset), height_over_standoff + 2]);
     }
   }
 }
 
-module bottom() {
+module sidecut(sidecut_width) {
   overcut = 6.35;
+  overall_height = (case_width * 2) + (slop * 2) + board_height;
+  overall_width = (case_width * 2) + (slop * 2) + board_width;
 
   translate([-overcut, -overcut]) {
-    square([(case_width * 2) + (slop * 2) + board_width + overcut,
-            (case_width * 2) + (slop * 2) + board_height + overcut]);
+    square([sidecut_width + overcut, overall_height + overcut - sidecut_width]);
+  }
+
+  translate([overall_width - sidecut_width, -overcut]) {
+    square([sidecut_width + overcut, overall_height + overcut - sidecut_width]);
+  }
+}
+
+module clamps() {
+  bottom_trim = stock_height - (case_width + standoff_height + height_over_standoff);
+  outer_height = (case_width * 2) + (slop * 2) + board_height;
+
+  echo("bottom_trim: " , bottom_trim);
+  echo("outer_height: ", outer_height);
+  echo("rotate_angle: ", rotate_angle);
+
+  rotate_angle = atan(bottom_trim / outer_height);
+
+  difference() {
+    rotate([-rotate_angle, 0, 0]) {
+      cube([25.4, 25.4, 2]);
+    }
+
+    translate([-1, -1, -30]) {
+      cube([30, 30, 30]);
+    }
+  }
+}
+
+
+module bottom() {
+  overcut = 3.125;
+
+  difference() {
+    translate([-overcut, -overcut]) {
+      square([(case_width * 2) + (slop * 2) + board_width + (overcut * 2),
+              (case_width * 2) + (slop * 2) + board_height + (overcut * 2)]);
+    }
+    color([0,1,0]) sidecut(sidecut_size - overcut);
   }
 }
 
@@ -273,7 +313,7 @@ module feet() {
 }
 
 
-mod = "standoff";
+mod = "case";
 
 if (mod == "case") {
   wasted_stock = stock_height - (case_width + standoff_height + height_over_standoff);
@@ -300,4 +340,12 @@ if (mod == "bottom") {
 
 if (mod == "feet") {
   feet();
+}
+
+if (mod == "sidecut") {
+  sidecut(sidecut_size);
+}
+
+if (mod == "clamps") {
+  clamps();
 }

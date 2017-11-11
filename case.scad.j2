@@ -22,9 +22,12 @@ height_over_standoff = {{args.height}};
 
 case_width = 6;
 
-usb_offset = -1;
+usb_offset = {{usb_offset}};
 
 pressfit = 1;
+
+reset_center_x = {{reset_center[0]}};
+reset_center_y = {{reset_center[1]}};
 
 hole_locations = [
 {%- for item in holes %}
@@ -32,7 +35,7 @@ hole_locations = [
 {%- endfor %}
 ];
 
-sidecut_size = 25.4;
+sidecut_size = {{sidecut_size}};
 
 //stock_height = case_width + standoff_height + height_over_standoff;
 stock_height = {{args.stock}};
@@ -111,7 +114,7 @@ module centered_box(x, y, w, h) {
 }
 
 module usb() {
-  translate([case_width + slop + 19.05 + usb_offset,
+  translate([case_width + slop + usb_offset,
              height_over_standoff + 2.05]) { // half the heigth of usb mini
     difference() {
       centered_box(0, 0, 12, 8.5);
@@ -256,9 +259,6 @@ module standoff() {
 module sidecut(sidecut_width, include_reset) {
   reset_height = 14;
   reset_width = 7.5;
-
-  reset_center_x = 28.5;
-  reset_center_y = 47.625;
 
   overcut = 6.35;
   overall_height = (case_width * 2) + (slop * 2) + board_height;

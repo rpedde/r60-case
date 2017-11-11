@@ -52,7 +52,10 @@ board_params = {
             [128.2, 47.5],
             [190.5, 9.4],
             [3, 38.1],
-            [282, 38.1]]
+            [282, 38.1]],
+        'usb_offset': 19.05,
+        'sidecut_size': 25.4,
+        'reset_center': [28.5, 47.625]
     },
     'r68': {
         'board_width': 304.80,
@@ -63,7 +66,10 @@ board_params = {
             [128.575, 47.625],
             [190.5, 9.525],
             [260.425, 67.025],
-            [266.70, 9.525]]
+            [266.70, 9.525]],
+        'usb_offset': 18.4,
+        'sidecut_size': 25.4,
+        'reset_center': [28.5, 47.625]
     },
     'numpad': {
         'board_width': 76.2,
@@ -72,7 +78,10 @@ board_params = {
             [19.05, 19.05],
             [19.05, 76.2],
             [57.15, 19.05],
-            [57.15, 76.2]]
+            [57.15, 76.2]],
+        'usb_offset': 38.10,
+        'sidecut_size': 12.7,
+        'reset_center': [38.1, 28.575]
     }
 }
 
@@ -88,6 +97,7 @@ def template_file(infile, outfile, kwargs):
 
 def genscad(args):
     j2_kwargs = board_params[args.type]
+    j2_kwargs['usb_offset'] += args.shift_usb
     j2_kwargs['args'] = vars(args)
 
     outfile = args.outfile
@@ -114,6 +124,8 @@ def get_parser():
                         type=float, default=11.0)
     parser.add_argument('--slop', help='extra slop in the inside of case',
                         type=float, default=1.5)
+    parser.add_argument('--shift-usb', help='how far to move usb (-1 for r60)',
+                        type=float, default=0.0)
 
     parser.add_argument('--outfile', help='ouput scad file')
 

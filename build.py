@@ -142,7 +142,7 @@ def build_output(fname, args, output, format=None, depends=None):
     dest_fname = args.type + '-' + output
     for item in sorted(depends):
         value = getattr(args, item)
-        dest_fname += '-%s:%s' % (item, value)
+        dest_fname += '-%s=%s' % (item, value)
 
     dest_fname += '.%s' % format
 

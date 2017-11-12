@@ -35,7 +35,8 @@ hole_locations = [
 {%- endfor %}
 ];
 
-sidecut_size = {{sidecut_size}};
+sidecut_size = {{sidecut_size}};  // how wide
+sidecut_remaining = 25.4;         // how close to end
 
 //stock_height = case_width + standoff_height + height_over_standoff;
 stock_height = {{args.stock}};
@@ -148,12 +149,19 @@ module standoff2() {
   cup_height = 4;
   cup_mm = 100;
 
+  gap = 10;
+
   bottom_trim = stock_height - (case_width + standoff_height + height_over_standoff);
 
   overall_height = (case_width * 2) + (slop * 2) + board_height;
-  overall_width = (case_width * 2) + (slop * 2) + cup_mm + 10;
+  overall_width = (25.4 * 3);
 
+  center = (overall_width + cup_size * 2 + cup_slop) / 2;
   rotate_angle = atan(bottom_trim / overall_height);
+
+  font = "Liberation Sans";
+  letter_size=bottom_trim * 1.5;
+  letter_height=0.5;
 
   difference() {
     union() {
@@ -161,15 +169,38 @@ module standoff2() {
         translate([0, 2 * case_width, 0]) {
           translate([0, 0, cup_height]) {
             // Outer Ring
-            difference() {
-              rcube2([overall_width + (cup_size * 2) + cup_slop,
-                     overall_height + (cup_size * 2) + cup_slop,
-                     bottom_trim * 1.5], tool_size);
+            union() {
+              difference() {
+                rcube2([overall_width + (cup_size * 2) + cup_slop,
+                       overall_height + (cup_size * 2) + cup_slop,
+                       bottom_trim * 1.5], tool_size);
+  
+                translate([cup_size, cup_size, -1])
+                rcube2([overall_width + cup_slop,
+                       overall_height + cup_slop,
+                       bottom_trim * 2.5], tool_size);
+              }
 
-              translate([cup_size, cup_size, -1])
-              rcube2([overall_width + cup_slop,
-                     overall_height + cup_slop,
-                     bottom_trim * 2.5], tool_size);
+              translate([0, 0, -(cup_height/2)]) {
+                rotate([90, 0, 0]) {
+                  linear_extrude(height = letter_height) {
+                    translate([center - (gap/2) - 1, 0, 0]) {
+                      text(str(stock_height), size=letter_size, font=font, halign="right", valign="bottom", $fn=16);
+                    }
+                  }
+                }
+              }
+
+              translate([0, 0, -(cup_height/2)]) {
+                rotate([90, 0, 0]) {
+                  linear_extrude(height = letter_height) {
+                    translate([center + (gap/2) + 1, 0, 0]) {
+                      text(str(stock_height), size=letter_size, font=font, halign="left", valign="bottom", $fn=16);
+                    }
+                  }
+                }
+              }
+
             }
 
             // Inner ring
@@ -211,8 +242,8 @@ module standoff2() {
       rcube2([overall_width * 2, overall_height * 2, bottom_trim * 2], tool_size);
 
       thing_width = overall_width + (cup_size * 2) + cup_slop;
-      translate([thing_width/2 - 5, 0, -1])
-        cube([10, 2 * overall_height, bottom_trim * 2.5]);
+      translate([thing_width/2 - (gap / 2), 0, -1])
+        cube([gap, 2 * overall_height, bottom_trim * 2.5]);
     }
   }
 }
@@ -265,11 +296,11 @@ module sidecut(sidecut_width, include_reset) {
   overall_width = (case_width * 2) + (slop * 2) + board_width;
 
   translate([-overcut, -overcut]) {
-    square([sidecut_width + overcut, overall_height + overcut - sidecut_width]);
+    square([sidecut_width + overcut, overall_height + overcut - sidecut_remaining]);
   }
 
   translate([overall_width - sidecut_width, -overcut]) {
-    square([sidecut_width + overcut, overall_height + overcut - sidecut_width]);
+    square([sidecut_width + overcut, overall_height + overcut - sidecut_remaining]);
   }
 
   // add a cut for the reset switch
@@ -303,14 +334,40 @@ module clamps() {
 
 
 module bottom() {
-  overcut = 3.125;
+  // We zero from the corner, but y is off due to angle of the case
+  overcut = tool_diameter / 2;
+
+  bottom_trim = stock_height - (case_width + standoff_height + height_over_standoff);
+  outer_height = (case_width * 2) + (slop * 2) + board_height;
+  rotate_angle = atan(bottom_trim / outer_height);
+
+  actual_width = (case_width * 2) + (slop * 2) + board_width;
+  actual_height = (case_width * 2) + (slop * 2) + board_height;
+
+  projected_height = cos(rotate_angle) * actual_height;
+  extra_projected = sin(rotate_angle) * bottom_trim;
+
+  sidecut_height = actual_height - sidecut_remaining;
+  projected_sidecut_height = cos(rotate_angle) * sidecut_height;
 
   difference() {
-    translate([-overcut, -overcut]) {
-      square([(case_width * 2) + (slop * 2) + board_width + (overcut * 2),
-              (case_width * 2) + (slop * 2) + board_height + (overcut * 2)]);
+    translate([-overcut, -(overcut + extra_projected)]) {
+      square([actual_width + (overcut * 2),
+              projected_height + extra_projected + (overcut * 2)]);
     }
-    color([0,1,0]) sidecut(sidecut_size - overcut, false);
+
+    union() {
+      translate([-overcut, -(overcut + extra_projected)]) {
+        square([sidecut_width + overcut,
+                projected_sidecut_height + extra_projected + overcut]);
+      }
+
+      translate([actual_width - sidecut_width, -(overcut + extra_projected)]) {
+        square([sidecut_width + overcut,
+                projected_sidecut_height + extra_projected + overcut]);
+      }
+    }
+    // color([0,1,0]) sidecut(sidecut_size - overcut, false);
   }
 }
 

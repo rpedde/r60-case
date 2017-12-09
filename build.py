@@ -126,6 +126,8 @@ def get_parser():
                         type=float, default=1.5)
     parser.add_argument('--shift-usb', help='how far to move usb (-1 for r60)',
                         type=float, default=0.0)
+    parser.add_argument('--top', help='whether to generate interlocked top',
+                        action='store_true')
 
     parser.add_argument('--outfile', help='ouput scad file')
 

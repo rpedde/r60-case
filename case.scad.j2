@@ -81,6 +81,7 @@ module case(x, y, z, wasted_stock) {
           }
         }
       }
+{% if args.top %}      
       union() {
         translate([0, 0, wasted_stock + case_width + standoff_height + height_over_standoff - pressfit])
         difference() {
@@ -94,6 +95,7 @@ module case(x, y, z, wasted_stock) {
                 110, tool_diameter);
         }
       }
+{% endif %}
     }
   }
 }

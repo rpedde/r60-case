@@ -350,24 +350,25 @@ module bottom() {
   sidecut_height = actual_height - sidecut_remaining;
   projected_sidecut_height = cos(rotate_angle) * sidecut_height;
 
-  difference() {
-    translate([-overcut, -(overcut + extra_projected)]) {
-      square([actual_width + (overcut * 2),
-              projected_height + extra_projected + (overcut * 2)]);
-    }
-
-    union() {
+  translate([-sidecut_size, 0, 0]) {
+    difference() {
       translate([-overcut, -(overcut + extra_projected)]) {
-        square([sidecut_width + overcut,
-                projected_sidecut_height + extra_projected + overcut]);
+        square([actual_width + (overcut * 2),
+                projected_height + extra_projected + (overcut * 2)]);
       }
-
-      translate([actual_width - sidecut_width, -(overcut + extra_projected)]) {
-        square([sidecut_width + overcut,
-                projected_sidecut_height + extra_projected + overcut]);
+  
+      union() {
+        translate([-overcut, -(overcut + extra_projected)]) {
+          square([sidecut_size,
+                  projected_sidecut_height + extra_projected]);
+        }
+  
+        translate([actual_width - (sidecut_size - overcut), -(overcut + extra_projected)]) {
+          square([sidecut_size + overcut,
+                  projected_sidecut_height + extra_projected]);
+        }
       }
     }
-    // color([0,1,0]) sidecut(sidecut_size - overcut, false);
   }
 }
 

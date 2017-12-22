@@ -375,17 +375,19 @@ module bottom() {
 }
 
 module feet() {
-  // Got little circular 12mm dots
-  dot_radius = 6.5;
+  // Got little circular 8mm dots
+  dot_radius = 4.1;
 
   overall_width = (2 * case_width) + (2 * slop) + board_width;
   overall_height = (2 * case_width) + (2 * slop) + board_height;
   ofs = dot_radius * 2;
 
-  translate([ofs, ofs]) circle(r=dot_radius);
-  translate([ofs, overall_height - ofs]) circle(r=dot_radius);
-  translate([overall_width - ofs, ofs]) circle(r=dot_radius);
-  translate([overall_width - ofs, overall_height - ofs]) circle(r=dot_radius);
+  translate([-sidecut_size, 0, 0]) {
+    translate([ofs + sidecut_size, ofs]) circle(r=dot_radius);
+    translate([overall_width - (ofs + sidecut_size), ofs]) circle(r=dot_radius);
+    translate([ofs, overall_height - ofs]) circle(r=dot_radius);
+    translate([overall_width - ofs, overall_height - ofs]) circle(r=dot_radius);
+  }
 }
 
 

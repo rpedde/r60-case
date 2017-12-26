@@ -7,6 +7,8 @@ import sys
 
 import jinja2
 
+OUTPUT_VARS = {}
+
 outputs = {
     'case': {
         'format': 'stl',
@@ -135,6 +137,8 @@ def get_parser():
 
 
 def build_output(fname, args, output, format=None, depends=None):
+    global OUTPUT_VARS
+
     if format is None:
         format = 'stl'
 
@@ -157,7 +161,13 @@ def build_output(fname, args, output, format=None, depends=None):
     stdout, stderr = p.communicate()
     returncode = p.poll()
 
-    sys.stdout.write(stdout)
+    for line in stderr.split('\n'):
+        line = line.strip()
+        if line.startswith("ECHO:"):
+            res = line[7:-1]
+            if res.startswith('H:'):
+                _, key, value = res.split(':')
+                OUTPUT_VARS[key.strip()] = value.strip()
 
     if returncode:
         sys.stderr.write('Error executing "%s"\n' % (' '.join(cmd)))
@@ -177,6 +187,10 @@ def main(rawargs):
         for output, values in outputs.iteritems():
             build_output(fname, args, output, **values)
 
+        if OUTPUT_VARS:
+            with open('%s-vars.txt' % args.type, 'w') as f:
+                for k, v in OUTPUT_VARS.iteritems():
+                    f.write('%s = %s\r\n' % (k, v))
 
 if __name__ == '__main__':
     main(sys.argv[1:])

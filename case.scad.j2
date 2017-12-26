@@ -81,7 +81,7 @@ module case(x, y, z, wasted_stock) {
           }
         }
       }
-{% if args.top %}      
+{% if args.top %}
       union() {
         translate([0, 0, wasted_stock + case_width + standoff_height + height_over_standoff - pressfit])
         difference() {
@@ -176,7 +176,7 @@ module standoff2() {
                 rcube2([overall_width + (cup_size * 2) + cup_slop,
                        overall_height + (cup_size * 2) + cup_slop,
                        bottom_trim * 1.5], tool_size);
-  
+
                 translate([cup_size, cup_size, -1])
                 rcube2([overall_width + cup_slop,
                        overall_height + cup_slop,
@@ -256,10 +256,6 @@ module standoff() {
   bottom_trim = stock_height - (case_width + standoff_height + height_over_standoff);
   outer_height = (case_width * 2) + (slop * 2) + board_height;
 
-  echo("bottom_trim: " , bottom_trim);
-  echo("outer_height: ", outer_height);
-  echo("rotate_angle: ", rotate_angle);
-
   rotate_angle = atan(bottom_trim / outer_height);
 
   rotate(a=[-rotate_angle, 0, 0]) {
@@ -317,9 +313,7 @@ module clamps() {
   bottom_trim = stock_height - (case_width + standoff_height + height_over_standoff);
   outer_height = (case_width * 2) + (slop * 2) + board_height;
 
-  echo("bottom_trim: " , bottom_trim);
-  echo("outer_height: ", outer_height);
-  echo("rotate_angle: ", rotate_angle);
+  echo(str("H:angle: ", rotate_angle));
 
   rotate_angle = atan(bottom_trim / outer_height);
 
@@ -358,13 +352,13 @@ module bottom() {
         square([actual_width + (overcut * 2),
                 projected_height + extra_projected + (overcut * 2)]);
       }
-  
+
       union() {
         translate([-overcut, -(overcut + extra_projected)]) {
           square([sidecut_size,
                   projected_sidecut_height + extra_projected]);
         }
-  
+
         translate([actual_width - (sidecut_size - overcut), -(overcut + extra_projected)]) {
           square([sidecut_size + overcut,
                   projected_sidecut_height + extra_projected]);
@@ -395,8 +389,12 @@ mod = "case";
 
 if (mod == "case") {
   wasted_stock = stock_height - (case_width + standoff_height + height_over_standoff);
-  echo("stock_height: ", stock_height);
-  echo("wasted_stock: ", wasted_stock);
+
+  echo(str("H:bottom_trim: ", wasted_stock));
+  echo(str("H:full_z: ", stock_height));
+  echo(str("H:full_x: ", (2 * case_width) + (2 * slop) + board_width));
+  echo(str("H:full_y: ", (2 * case_width) + (2 * slop) + board_height));
+
   case(0, 0, 0, wasted_stock);
 }
 

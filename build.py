@@ -203,6 +203,8 @@ def build_output(fname, args, output, format=None, depends=None):
                 _, key, value = res.split(':')
                 OUTPUT_VARS[key.strip()] = value.strip()
 
+    OUTPUT_VARS['version'] = get_rev()
+
     if returncode:
         sys.stderr.write('Error executing "%s"\n' % (' '.join(cmd)))
         sys.stderr.write(stderr)
@@ -223,7 +225,8 @@ def main(rawargs):
 
         if OUTPUT_VARS:
             with open('%s-vars.txt' % args.type, 'w') as f:
-                for k, v in OUTPUT_VARS.iteritems():
+                for k in sorted(OUTPUT_VARS.keys()):
+                    v = OUTPUT_VARS[k]
                     f.write('%s = %s\r\n' % (k, v))
 
 if __name__ == '__main__':

@@ -88,6 +88,39 @@ board_params = {
 }
 
 
+def get_rev():
+    cmd = 'git rev-parse --short=6 HEAD'.split()
+
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    returncode = p.poll()
+
+    if returncode:
+        print 'Error getting git version'
+        print stderr
+
+        return 'unknown'
+
+    rev = stdout.split('\n')[0].strip()
+
+    cmd = 'git diff-index --name-only HEAD --'.split()
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    returncode = p.poll()
+
+    if returncode:
+        print 'Error getting git version'
+        print stderr
+
+        return 'unknown'
+
+    changed = stdout.strip().split('\n')
+    if len(changed):
+        rev += '+local'
+
+    return rev
+
+
 def template_file(infile, outfile, kwargs):
     path, filename = os.path.split(infile)
     j2_env = jinja2.Environment(loader=jinja2.FileSystemLoader(path) or '.')
@@ -101,6 +134,7 @@ def genscad(args):
     j2_kwargs = board_params[args.type]
     j2_kwargs['usb_offset'] += args.shift_usb
     j2_kwargs['args'] = vars(args)
+    j2_kwargs['build_ver'] = get_rev()
 
     outfile = args.outfile
     if not outfile:
